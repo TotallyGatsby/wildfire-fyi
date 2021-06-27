@@ -1,10 +1,14 @@
 const fetch = require('node-fetch');
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { marshall } from '@aws-sdk/util-dynamodb';
+
+const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
 
 const fireState = 'US-WA';
-const daysBack = 14;
+const daysBack = 1;
 
 // Grab some attributes from the fire
-function parseArcGisFire(fire) {
+async function parseArcGisFire(fire) {
   let parsedFire = {};
 
   // Location
@@ -32,6 +36,13 @@ function parseArcGisFire(fire) {
   parsedFire.causeDetail = fire.attributes.FireCauseGeneral;
   parsedFire.causeSubDetail = fire.attributes.FireCauseSpecific;
 
+  const input = {
+    TableName: process.env.firesTableName,
+    Item: marshall(parsedFire),
+  };
+
+  const command = new PutItemCommand(input);
+  await ddbClient.send(command);
 
   return parsedFire;
 }
@@ -61,7 +72,9 @@ export async function handler() {
       };
     });
 
-  let fires = features.map(parseArcGisFire);
+  let fires = await Promise.all(features.map(parseArcGisFire));
+
+  console.log(`Fire Count: ${fires.length}`);
 
   return {
     statusCode: 200,
