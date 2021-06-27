@@ -5,7 +5,7 @@ import { marshall } from '@aws-sdk/util-dynamodb';
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
 
 const fireState = 'US-WA';
-const daysBack = 1;
+const daysBack = 5;
 
 // Grab some attributes from the fire
 async function parseArcGisFire(fire) {
