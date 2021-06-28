@@ -1,6 +1,8 @@
-const fetch = require('node-fetch');
-import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+/* eslint-disable import/prefer-default-export */
+import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
+
+const fetch = require('node-fetch');
 
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
 
@@ -9,7 +11,7 @@ const daysBack = 5;
 
 // Grab some attributes from the fire
 async function parseArcGisFire(fire) {
-  let parsedFire = {};
+  const parsedFire = {};
 
   // Location
   parsedFire.latitude = fire.attributes.InitialLatitude;
@@ -48,9 +50,9 @@ async function parseArcGisFire(fire) {
 }
 
 function constructArcGisUrl() {
-  let previousDate = new Date();
+  const previousDate = new Date();
   previousDate.setDate(previousDate.getDate() - daysBack);
-  console.log(previousDate);
+
   return encodeURIComponent(`POOState = '${fireState}' AND ModifiedOnDateTime_dt >= TIMESTAMP '${previousDate.getMonth() + 1}-${previousDate.getDate()}-${previousDate.getFullYear()} 0:00:0'`);
 }
 
@@ -58,27 +60,27 @@ export async function handler() {
   let features;
 
   await fetch(`https://services3.arcgis.com/T4QMspbfLg3qTGWY/arcgis/rest/services/CY_WildlandFire_Locations_ToDate/FeatureServer/0/query?where=${constructArcGisUrl()}&outFields=*&outSR=4326&f=json`)
-    .then(res => res.json())
-    .then(json => {
+    .then((res) => res.json())
+    .then((json) => {
       features = json.features;
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
 
       return {
         statusCode: 500,
-        headers: { "Content-Type": "text/plain" },
-        body: `Failure.`,
+        headers: { 'Content-Type': 'text/plain' },
+        body: 'Failure.',
       };
     });
 
-  let fires = await Promise.all(features.map(parseArcGisFire));
+  const fires = await Promise.all(features.map(parseArcGisFire));
 
   console.log(`Fire Count: ${fires.length}`);
 
   return {
     statusCode: 200,
-    headers: { "Content-Type": "text/plain" },
+    headers: { 'Content-Type': 'text/plain' },
     body: `${JSON.stringify(fires[0])}`,
   };
 }
