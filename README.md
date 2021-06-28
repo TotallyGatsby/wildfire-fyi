@@ -1,7 +1,7 @@
 # Wildfire FYI
 
 *This project is best-effort, untested, and shouldn't be relied on for any critical application.
-There are no warrantees on the performance, correctness, or reliability. **USE AT YOUR OWN RISK** *
+There are no warrantees on the performance, correctness, or reliability. **USE AT YOUR OWN RISK***
 
 The goal of Wildfire FYI is to provide a mechanism for updating me via SMS when wildfires are close
 to remote property. It works by pulling the latest data from the
