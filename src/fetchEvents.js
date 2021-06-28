@@ -1,8 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
-
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
 
