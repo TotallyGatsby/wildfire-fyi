@@ -117,7 +117,7 @@ export async function handler() {
 
       const message = `Closest known wildfire: ${closest.fire.incidentName} - ${closest.distanceKmString}km (${closest.distanceMilesString}mi)\n
  FIRE_ID: ${closest.fire.uniqueFireId}\n
- LAT/LNG: ${closest.fire.latitude}, ${closest.fire.longitude}\n
+ LAT/LNG: https://www.google.com/maps/search/?api=1&query=${closest.fire.latitude},${closest.fire.longitude} \n
    ACRES: ${closest.fire.dailyAcres}`;
 
       const snsPublishRequest = {
