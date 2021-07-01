@@ -116,9 +116,11 @@ export async function handler() {
         { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
       const message = `Closest known wildfire: ${closest.fire.incidentName} - ${closest.distanceKmString}km (${closest.distanceMilesString}mi)\n
+ UPDATED: ${new Date(closest.fire.lastUpdate).toDateString()}\n
  FIRE_ID: ${closest.fire.uniqueFireId}\n
  LAT/LNG: https://www.google.com/maps/search/?api=1&query=${closest.fire.latitude},${closest.fire.longitude} \n
-   ACRES: ${closest.fire.dailyAcres}`;
+   ACRES: ${closest.fire.dailyAcres}\n
+http://fireinfo.dnr.wa.gov/`;
 
       const snsPublishRequest = {
         Message: message,
