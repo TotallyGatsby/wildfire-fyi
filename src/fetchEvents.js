@@ -2,6 +2,7 @@
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
 import fetch from 'node-fetch';
+import log from 'npmlog';
 
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
 
@@ -64,7 +65,7 @@ export async function handler() {
       features = json.features;
     })
     .catch((err) => {
-      console.log(err);
+      log.error('FETCH', JSON.stringify(err));
 
       return {
         statusCode: 500,
@@ -75,7 +76,7 @@ export async function handler() {
 
   const fires = await Promise.all(features.map(parseArcGisFire));
 
-  console.log(`Fire Count: ${fires.length}`);
+  log.info('FIRE', `Fire Count: ${fires.length}`);
 
   return {
     statusCode: 200,

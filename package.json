@@ -25,6 +25,7 @@
     "@aws-sdk/util-dynamodb": "^3.19.0",
     "@serverless-stack/cli": "0.29.5",
     "@serverless-stack/resources": "0.29.5",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "npmlog": "^4.1.2"
   }
 }

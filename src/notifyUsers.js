@@ -2,6 +2,7 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
+import log from 'npmlog';
 
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
 const snsClient = new SNSClient({ region: 'us-west-2' });
@@ -30,7 +31,7 @@ async function getLocationsToNotify() {
 
   const response = await ddbClient.send(command)
     .catch((err) => {
-      console.log(err);
+      log.info(err);
 
       return {
         statusCode: 500,
@@ -53,7 +54,7 @@ async function getActiveFires() {
 
   const response = await ddbClient.send(command)
     .catch((err) => {
-      console.log(err);
+      log.error('DDB', JSON.stringify(err));
 
       return {
         statusCode: 500,
@@ -62,7 +63,7 @@ async function getActiveFires() {
       };
     });
 
-  console.log(`Found ${response.Items.length} active fires of ${response.ScannedCount} total fires.`);
+  log.info('FIRE', `Found ${response.Items.length} active fires of ${response.ScannedCount} total fires.`);
 
   return response.Items;
 }
@@ -104,7 +105,7 @@ export async function handler() {
 
         if (distance < closest.distance) {
           closest = { distance, fire: tmpFire };
-          console.log(`New closest fire: ${tmpFire.incidentName} is ${distance} meters away`);
+          log.info('FIRE', `New closest fire: ${tmpFire.incidentName} is ${distance} meters away`);
         }
       });
       closest.distanceKm = closest.distance / 1000;
@@ -130,7 +131,7 @@ http://fireinfo.dnr.wa.gov/`;
 
       await snsClient.send(command)
         .catch((err) => {
-          console.log(JSON.stringify(err));
+          log.error('SNS', JSON.stringify(err));
 
           return {
             statusCode: 500,
