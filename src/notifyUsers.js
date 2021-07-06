@@ -2,6 +2,7 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
+import { DateTime } from 'luxon';
 import log from 'npmlog';
 
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
@@ -91,13 +92,15 @@ export async function handler() {
     return fires;
   }
 
-  let closest = { distance: Number.MAX_VALUE, fire: null };
+  const closestFires = locations.map((location) => {
+    const tmpLocation = unmarshall(location);
+    log.info('FIRE', `Searching for closest fire to ${tmpLocation.phone}`);
+    let closest = { distance: Number.MAX_VALUE, fire: null };
+    fires.forEach((fire) => {
+      const tmpFire = unmarshall(fire);
+      const fireTime = DateTime.fromMillis(tmpFire.lastUpdate);
 
-  await Promise.all(
-    locations.map(async (location) => {
-      const tmpLocation = unmarshall(location);
-      fires.forEach((fire) => {
-        const tmpFire = unmarshall(fire);
+      if (Math.abs(fireTime.diffNow('days').toObject().days) < 5) {
         const distance = distanceLatLng(tmpLocation.latitude,
           tmpLocation.longitude,
           tmpFire.latitude,
@@ -107,15 +110,28 @@ export async function handler() {
           closest = { distance, fire: tmpFire };
           log.info('FIRE', `New closest fire: ${tmpFire.incidentName} is ${distance} meters away`);
         }
-      });
-      closest.distanceKm = closest.distance / 1000;
-      closest.distanceMiles = closest.distanceKm * kmToMiles;
+      }
+    });
 
-      closest.distanceKmString = closest.distanceKm.toLocaleString(undefined,
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      closest.distanceMilesString = closest.distanceMiles.toLocaleString(undefined,
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    closest.distanceKm = closest.distance / 1000;
+    closest.distanceMiles = closest.distanceKm * kmToMiles;
 
+    closest.distanceKmString = closest.distanceKm.toLocaleString(undefined,
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    closest.distanceMilesString = closest.distanceMiles.toLocaleString(undefined,
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    tmpLocation.closest = closest;
+    return tmpLocation;
+  });
+
+  await Promise.all(
+    closestFires.map(async (location) => {
+      if (!location.closest.fire) {
+        return;
+      }
+
+      const { closest } = location;
       const message = `Closest known wildfire: ${closest.fire.incidentName} - ${closest.distanceKmString}km (${closest.distanceMilesString}mi)\n
  UPDATED: ${new Date(closest.fire.lastUpdate).toDateString()}\n
  FIRE_ID: ${closest.fire.uniqueFireId}\n
@@ -125,8 +141,9 @@ http://fireinfo.dnr.wa.gov/`;
 
       const snsPublishRequest = {
         Message: message,
-        PhoneNumber: tmpLocation.phone,
+        PhoneNumber: location.phone,
       };
+
       const command = new PublishCommand(snsPublishRequest);
 
       await snsClient.send(command)
@@ -145,9 +162,6 @@ http://fireinfo.dnr.wa.gov/`;
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'text/plain' },
-    body: `Closest known wildfire: ${closest.fire.incidentName} - ${closest.distanceKmString}km(${closest.distanceMilesString}mi) \n
-    FIRE_ID: ${closest.fire.uniqueFireId}\n
-    LAT / LNG: ${closest.fire.latitude}, ${closest.fire.longitude}\n
-      ACRES: ${closest.fire.dailyAcres}`,
+    body: 'Successfully sent all messages',
   };
 }
