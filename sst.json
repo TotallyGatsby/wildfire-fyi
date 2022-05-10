@@ -1,6 +1,5 @@
 {
   "name": "wildfire-fyi",
-  "stage": "dev",
   "region": "us-west-2",
   "lint": true
 }

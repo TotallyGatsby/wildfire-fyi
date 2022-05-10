@@ -11,22 +11,20 @@
     "lint": "eslint ."
   },
   "devDependencies": {
-    "@aws-cdk/assert": "1.105.0",
-    "eslint": "^7.29.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.23.4"
+    "eslint": "^8.15.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0"
   },
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.105.0",
-    "@aws-cdk/core": "1.105.0",
-    "@aws-sdk/client-dynamodb": "^3.19.0",
-    "@aws-sdk/client-sns": "^3.19.0",
-    "@aws-sdk/lib-dynamodb": "^3.19.0",
-    "@aws-sdk/util-dynamodb": "^3.19.0",
-    "@serverless-stack/cli": "0.29.5",
-    "@serverless-stack/resources": "0.29.5",
+    "@aws-sdk/client-dynamodb": "^3.87.0",
+    "@aws-sdk/client-sns": "^3.87.0",
+    "@aws-sdk/lib-dynamodb": "^3.87.0",
+    "@aws-sdk/util-dynamodb": "^3.87.0",
+    "@serverless-stack/cli": "1.0.4",
+    "@serverless-stack/resources": "1.0.4",
+    "aws-cdk-lib": "2.22.0",
     "luxon": "^1.27.0",
-    "node-fetch": "^2.6.1",
-    "npmlog": "^4.1.2"
+    "node-fetch": "^3.2.4",
+    "npmlog": "^6.0.2"
   }
 }
