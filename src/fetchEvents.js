@@ -1,10 +1,14 @@
 /* eslint-disable import/prefer-default-export */
 import { DynamoDBClient, PutItemCommand } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
 import fetch from 'node-fetch';
 import log from 'npmlog';
+import GeoJSON from 'geojson';
 
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
+const s3Client = new S3Client({ region: 'us-west-2' });
 
 const fireState = 'US-WA';
 const daysBack = 5;
@@ -46,6 +50,9 @@ async function parseArcGisFire(fire) {
   const command = new PutItemCommand(input);
   await ddbClient.send(command);
 
+  // geojson expects a title, which doesn't need to go to ddb
+  parsedFire.title = `${parsedFire.incidentName} - ${parsedFire.uniqueFireId}`;
+
   return parsedFire;
 }
 
@@ -75,6 +82,20 @@ export async function handler() {
     });
 
   const fires = await Promise.all(features.map(parseArcGisFire));
+
+  const geojson = GeoJSON.parse(fires, { Point: ['latitude', 'longitude'] });
+
+  const s3PutParams = {
+    Bucket: process.env.geojsonBucketName,
+    Key: 'geojson.json',
+    Body: JSON.stringify(geojson),
+  };
+
+  const results = await s3Client.send(new PutObjectCommand(s3PutParams)).catch((err) => {
+    log.error('S3', JSON.stringify(err));
+  });
+
+  log.info('S3 Results', `${JSON.stringify(results)}`);
 
   log.info('FIRE', `Fire Count: ${fires.length}`);
 

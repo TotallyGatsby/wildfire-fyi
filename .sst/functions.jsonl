@@ -1,4 +1,0 @@
-{"id":"dev-wildfire-fyi-my-stack-Api-Lambda_GET_-fires","handler":"src/fetchEvents.handler","runtime":"nodejs12.x","srcPath":".","root":"/Users/gatsby/Projects/git/wildfire-fyi"}
-{"id":"dev-wildfire-fyi-my-stack-Api-Lambda_GET_-notify","handler":"src/notifyUsers.handler","runtime":"nodejs12.x","srcPath":".","root":"/Users/gatsby/Projects/git/wildfire-fyi"}
-{"id":"dev-wildfire-fyi-my-stack-FireWatch-Job","handler":"src/fetchEvents.handler","runtime":"nodejs12.x","srcPath":".","root":"/Users/gatsby/Projects/git/wildfire-fyi"}
-{"id":"dev-wildfire-fyi-my-stack-Notifier-Job","handler":"src/notifyUsers.handler","runtime":"nodejs12.x","srcPath":".","root":"/Users/gatsby/Projects/git/wildfire-fyi"}
