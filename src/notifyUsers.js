@@ -4,6 +4,7 @@ import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { DateTime } from 'luxon';
 import log from 'npmlog';
+import sendDiscordMessage from './discordPublisher';
 
 const ddbClient = new DynamoDBClient({ region: 'us-west-2' });
 const snsClient = new SNSClient({ region: 'us-west-2' });
@@ -67,6 +68,15 @@ async function getActiveFires() {
   log.info('FIRE', `Found ${response.Items.length} active fires of ${response.ScannedCount} total fires.`);
 
   return response.Items;
+}
+
+async function constructMessage(closest) {
+  return `Closest known wildfire: ${closest.fire.incidentName} - ${closest.distanceKmString}km (${closest.distanceMilesString}mi)\n
+ UPDATED: ${new Date(closest.fire.lastUpdate).toDateString()}\n
+ FIRE_ID: ${closest.fire.uniqueFireId}\n
+ LAT/LNG: https://www.google.com/maps/search/?api=1&query=${closest.fire.latitude},${closest.fire.longitude} \n
+   ACRES: ${closest.fire.dailyAcres}\n
+http://fireinfo.dnr.wa.gov/`;
 }
 
 export async function handler() {
@@ -138,30 +148,30 @@ export async function handler() {
       }
 
       const { closest } = location;
-      const message = `Closest known wildfire: ${closest.fire.incidentName} - ${closest.distanceKmString}km (${closest.distanceMilesString}mi)\n
- UPDATED: ${new Date(closest.fire.lastUpdate).toDateString()}\n
- FIRE_ID: ${closest.fire.uniqueFireId}\n
- LAT/LNG: https://www.google.com/maps/search/?api=1&query=${closest.fire.latitude},${closest.fire.longitude} \n
-   ACRES: ${closest.fire.dailyAcres}\n
-http://fireinfo.dnr.wa.gov/`;
 
-      const snsPublishRequest = {
-        Message: message,
-        PhoneNumber: location.phone,
-      };
+      if (location.phone) {
+        const message = constructMessage(closest);
 
-      const command = new PublishCommand(snsPublishRequest);
+        const snsPublishRequest = {
+          Message: message,
+          PhoneNumber: location.phone,
+        };
 
-      await snsClient.send(command)
-        .catch((err) => {
-          log.error('SNS', JSON.stringify(err));
+        const command = new PublishCommand(snsPublishRequest);
 
-          return {
-            statusCode: 500,
-            headers: { 'Content-Type': 'text/plain' },
-            body: 'Failure.',
-          };
-        });
+        await snsClient.send(command)
+          .catch((err) => {
+            log.error('SNS', JSON.stringify(err));
+
+            return {
+              statusCode: 500,
+              headers: { 'Content-Type': 'text/plain' },
+              body: 'Failure.',
+            };
+          });
+      } else if (location.hook && location.token) {
+        await sendDiscordMessage(closest, location.hook, location.token);
+      }
     }),
   );
 
