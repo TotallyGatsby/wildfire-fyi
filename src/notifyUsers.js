@@ -101,10 +101,12 @@ export async function handler() {
       const fireTime = DateTime.fromMillis(tmpFire.lastUpdate);
 
       if (Math.abs(fireTime.diffNow('days').toObject().days) < 5) {
-        const distance = distanceLatLng(tmpLocation.latitude,
+        const distance = distanceLatLng(
+          tmpLocation.latitude,
           tmpLocation.longitude,
           tmpFire.latitude,
-          tmpFire.longitude);
+          tmpFire.longitude,
+        );
 
         if (distance < closest.distance) {
           closest = { distance, fire: tmpFire };
@@ -116,10 +118,14 @@ export async function handler() {
     closest.distanceKm = closest.distance / 1000;
     closest.distanceMiles = closest.distanceKm * kmToMiles;
 
-    closest.distanceKmString = closest.distanceKm.toLocaleString(undefined,
-      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    closest.distanceMilesString = closest.distanceMiles.toLocaleString(undefined,
-      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    closest.distanceKmString = closest.distanceKm.toLocaleString(
+      undefined,
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+    );
+    closest.distanceMilesString = closest.distanceMiles.toLocaleString(
+      undefined,
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+    );
 
     tmpLocation.closest = closest;
     return tmpLocation;
